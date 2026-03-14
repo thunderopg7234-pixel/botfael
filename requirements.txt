@@ -1,6 +1,5 @@
 telethon
-google-generativeai
-googletrans==3.1.0a0
+flask
 pypinyin
 yt-dlp
 httpx
