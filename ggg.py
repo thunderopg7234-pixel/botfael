@@ -13,7 +13,7 @@ def run_flask():
     app.run(host='0.0.0.0', port=10000)
 
 # 3. Start the server in the background so it doesn't stop your bot
-threading.Thread(target=run_pinger, daemon=True).start()
+threading.Thread(target=run_flask, daemon=True).start()
 
 
 # main.py
