@@ -9,12 +9,6 @@ app = Flask(__name__)
 def heartbeat():
     return "ALIVE", 200
 
-# 2. Function to run the server on Render's port
-def run_pinger():
-    # Render uses port 10000 by default
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
-
 def run_flask():
     app.run(host='0.0.0.0', port=10000)
 
@@ -4329,16 +4323,22 @@ async def stop_diva(event):
     else:
         await event.edit("⚠ Gak ada yang jalan di sini.")
 
+# --- KEEP THIS AT THE VERY BOTTOM OF ggg.py ---
 
-async def main():
-    print("Bot running...")
-    await client.start()
+def start_servers():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
+
+if __name__ == "__main__":
+    print("--- DEBUG: STEP 2 (Starting Pinger Thread) ---")
+    t = threading.Thread(target=start_servers, daemon=True)
+    t.start()
+
+    print("--- DEBUG: STEP 3 (Connecting to Telegram) ---")
     try:
-        await client.run_until_disconnected()
-    except KeyboardInterrupt:
-        print("\nCtrl+C pressed. Stopping bot...")
-        await client.disconnect()
-        print("Bot stopped.")
-        return
-
-asyncio.run(main())
+        # Use your session string here if you have it!
+        client.start() 
+        print("--- DEBUG: STEP 4 (Bot is LIVE!) ---")
+        client.run_until_disconnected()
+    except Exception as e:
+        print(f"--- DEBUG: BOT CRASHED WITH ERROR: {e} ---")
