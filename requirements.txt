@@ -6,3 +6,4 @@ httpx
 PySocks
 Pillow
 requests
+bing-image-urls
