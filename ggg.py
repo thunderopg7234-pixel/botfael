@@ -51,6 +51,8 @@ print("--- DEBUG: STEP 3 (Connecting to Telegram) ---")
 # Initialize Telethon client withouit string session
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
+print("--- DEBUG: STEP 4 (Bot is LIVE!) ---"
+
 from telethon import TelegramClient, events
 from telethon.tl.functions.contacts import GetContactsRequest, DeleteContactsRequest
 import asyncio
