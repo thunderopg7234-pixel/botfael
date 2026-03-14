@@ -1,3 +1,23 @@
+from flask import Flask
+import threading
+import os
+
+# 1. Create a tiny web server
+app = Flask(__name__)
+
+@app.route('/')
+def heartbeat():
+    return "ALIVE", 200
+
+# 2. Function to run the server on Render's port
+def run_pinger():
+    # Render uses port 10000 by default
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
+
+# 3. Start the server in the background so it doesn't stop your bot
+threading.Thread(target=run_pinger, daemon=True).start()
+
 
 # main.py
 import random
@@ -5,7 +25,6 @@ import asyncio
 import logging
 from telethon import TelegramClient, events
 import json
-from googletrans import Translator
 from pypinyin import lazy_pinyin
 from telethon.tl.custom.message import Message
 from telethon.sessions import StringSession
@@ -1444,46 +1463,8 @@ async def whois_handler(event):
 
 from telethon import TelegramClient, events
 from telethon.tl.custom.message import Message
-from googletrans import Translator
 from pypinyin import lazy_pinyin
 import json
-
-MODE_FILE = "mode.json"
-translator = Translator()
-
-# ---------------- MODE SYSTEM ---------------- #
-def load_mode():
-    try:
-        with open(MODE_FILE, "r") as f:
-            return json.load(f).get("mode", "indo")
-    except FileNotFoundError:
-        return "indo"
-
-def save_mode(mode):
-    with open(MODE_FILE, "w") as f:
-        json.dump({"mode": mode}, f)
-
-current_mode = load_mode()
-
-async def translate_label(text: str) -> str:
-    """Translate only labels, not mentions/IDs"""
-    if current_mode == "indo":
-        return text
-    elif current_mode == "english":
-        return translator.translate(text, dest="en").text
-    elif current_mode == "chinese":
-        zh = translator.translate(text, dest="zh-cn").text
-        romanized = " ".join(lazy_pinyin(zh))
-        return romanized
-    return text
-
-# ---------------- SMALL CAPS HELPER ---------------- #
-def to_smallcaps(text: str) -> str:
-    mapping = str.maketrans(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
-    )
-    return text.translate(mapping)
 
 # ---------------- .ID HANDLER ---------------- #
 @client.on(events.NewMessage(pattern=r'^\.id(?:\s+(@\w+))?$', outgoing=True))
