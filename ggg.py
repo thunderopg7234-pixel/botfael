@@ -39,7 +39,7 @@ PREFIX = "."
 MY_ID = 1873766873
 # -------------------------------------------- #
 
-SESSION_STRING = os.getenv("SESSION_STRING")
+SESSION_STRING = os.environ.get("SESSION_STRING")
 
 print("--- DEBUG: STEP 3 (Connecting to Telegram) ---")
 # Initialize Telethon client withouit string session
