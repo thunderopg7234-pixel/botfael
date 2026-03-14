@@ -15,6 +15,9 @@ def run_pinger():
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
 
+def run_flask():
+    app.run(host='0.0.0.0', port=10000)
+
 # 3. Start the server in the background so it doesn't stop your bot
 threading.Thread(target=run_pinger, daemon=True).start()
 
@@ -44,6 +47,7 @@ MY_ID = 1873766873
 
 SESSION_STRING = os.getenv("SESSION_STRING")
 
+print("--- DEBUG: STEP 3 (Connecting to Telegram) ---")
 # Initialize Telethon client withouit string session
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
