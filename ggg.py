@@ -3286,6 +3286,8 @@ async def fake_forward(event):
         # Jika masih gagal, kita kirim detail error ke Saved Messages
         await client.send_message("me", f"❌ Gagal Total: `{e}`")
 
+import os
+
 @client.on(events.NewMessage(incoming=True))
 async def anti_view_once(event):
     # Cek apakah pesan masuk dari chat pribadi (RC) dan ada medianya
@@ -3641,143 +3643,7 @@ async def handler(event):
 
     await event.reply(msg)
 
-# userbot_heroml_playwright.py
-import asyncio
-from telethon import TelegramClient, events
-from telethon.tl.types import User
-from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
-import base64
-import random
-from playwright.async_api import async_playwright
-import requests
 
-VIEWPORT = {"width": 1200, "height": 1600}
-
-# List hero ML (nama + role)
-HEROES = [
-    {"name": "Alucard", "role": "Fighter/Assassin"},
-    {"name": "Gusion", "role": "Assassin/Mage"},
-    {"name": "Eudora", "role": "Mage"},
-    {"name": "Miya", "role": "Marksman"},
-    {"name": "Layla", "role": "Marksman"},
-    {"name": "Tigreal", "role": "Tank"},
-    {"name": "Khufra", "role": "Tank"},
-    {"name": "Angela", "role": "Support"},
-    {"name": "Rafaela", "role": "Support"},
-]
-
-# -------- Helper Functions --------
-async def get_profile_photo(client, user: User):
-    photos = await client.get_profile_photos(user, limit=1)
-    if photos.total == 0:
-        img = Image.new("RGB", (400, 400), "#444444")
-        buf = BytesIO()
-        img.save(buf, format="JPEG")
-        return buf.getvalue()
-    photo = photos[0]
-    buf = BytesIO()
-    await client.download_media(photo, file=buf)
-    buf.seek(0)
-    return buf.read()
-
-async def fetch_hero_image(hero_name):
-    """Cari hero image di Google Images menggunakan Playwright"""
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page(viewport={"width": 1200, "height": 800})
-        search_query = f"{hero_name} Mobile Legends official art"
-        search_url = f"https://www.google.com/search?tbm=isch&q={search_query.replace(' ', '+')}"
-        await page.goto(search_url)
-        # tunggu gambar muncul
-        await page.wait_for_selector("img", timeout=5000)
-        # ambil src gambar pertama
-        img_element = await page.query_selector("img")
-        img_url = await img_element.get_attribute("src")
-        await browser.close()
-        if not img_url.startswith("http"):
-            return None
-        # download image
-        try:
-            resp = requests.get(img_url, timeout=5)
-            return Image.open(BytesIO(resp.content)).convert("RGBA")
-        except:
-            return None
-
-def merge_images(profile_bytes, hero_img: Image.Image):
-    profile_img = Image.open(BytesIO(profile_bytes)).convert("RGBA")
-    profile_img = profile_img.resize((200, 200))
-    
-    # circular mask
-    mask = Image.new("L", profile_img.size, 0)
-    draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0, 200, 200), fill=255)
-    profile_img.putalpha(mask)
-
-    # resize hero background
-    hero_img = hero_img.resize((VIEWPORT["width"], VIEWPORT["height"]))
-
-    # paste profile image
-    hero_img.paste(profile_img, (int(VIEWPORT["width"]/2 - 100), VIEWPORT["height"] - 400), mask=profile_img)
-    return hero_img
-
-def add_text_overlay(img: Image.Image, hero_name, hero_role, target_name):
-    draw = ImageDraw.Draw(img)
-    font_name = ImageFont.truetype("arial.ttf", 50)
-    font_role = ImageFont.truetype("arial.ttf", 30)
-    font_target = ImageFont.truetype("arial.ttf", 40)
-
-    draw.text((50, 50), f"Hero: {hero_name}", fill="white", font=font_name)
-    draw.text((50, 120), f"Role: {hero_role}", fill="white", font=font_role)
-    draw.text((50, 180), f"Target: {target_name}", fill="yellow", font=font_target)
-    return img
-
-async def render_ss(img: Image.Image):
-    buf = BytesIO()
-    img.save(buf, format="JPEG")
-    buf.seek(0)
-    return buf.read()
-
-
-@client.on(events.NewMessage(pattern=r"\.heroml"))
-async def handler(event):
-    if not event.is_reply:
-        await event.reply("Balas pesan target lalu ketik .heroml")
-        return
-
-    reply_msg = await event.get_reply_message()
-    user = reply_msg.sender
-    if not user:
-        await event.reply("Tidak bisa ambil user target")
-        return
-
-    target_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or "—"
-
-    # pilih hero random
-    hero = random.choice(HEROES)
-    hero_name = hero["name"]
-    hero_role = hero["role"]
-
-    # ambil profile photo
-    profile_bytes = await get_profile_photo(client, user)
-
-    # ambil hero image via Playwright Google Images
-    hero_img = await fetch_hero_image(hero_name)
-    if hero_img is None:
-        await event.reply("Gagal ambil gambar hero dari Google.")
-        return
-
-    # merge images + overlay
-    final_img = merge_images(profile_bytes, hero_img)
-    final_img = add_text_overlay(final_img, hero_name, hero_role, target_name)
-
-    # render screenshot
-    screenshot_bytes = await render_ss(final_img)
-
-    # kirim ke chat
-    await event.reply(file=screenshot_bytes, caption=f"Hero ML untuk {target_name}: {hero_name} ({hero_role})")
-
-# telethon_edit_loop.py
 from telethon import TelegramClient, events
 import asyncio
 import random
